@@ -319,19 +319,275 @@ result = node;
 	return resultCopy.next;
 }
 
+------------------------------------------------------------------------------------------
+lintcode中的题
+1. Remove Linked List Elements
+    public ListNode removeElements(ListNode head, int val) {
+        // Write your code here
+        if(head == null){
+            return null;
+        }
+        ListNode node = new ListNode(0);
+        ListNode node1 = node;
+        node.next = head;
+        while(node != null && node.next != null){
+            if(node.next.val != val){
+                node = node.next;
+            }
+            else{
+                node.next = node.next.next;
+            }
+        }
+        return node1.next;
+    }
+2. remove duplicates from unsorted list
+如果用set存的话一定要存val不能存listnode，而且为了删除方便，我们要每次看head.next的val
+这样方便remove
+ public ListNode removeDuplicates(ListNode head) { 
+        // Write your code here
+        if(head == null || head.next == null){
+            return head;
+        }
+        ListNode pre = new ListNode(-1);
+        pre.next = head;
+        head = pre;
+        ListNode result = head;
+        HashSet<Integer> set = new HashSet<Integer>();
+        while(head != null && head.next != null){
+            if(!set.contains(head.next.val)){
+                set.add(head.next.val);
+                head = head.next;
+                
+            }
+            else{
+                head.next = head.next.next;
+            }
+            
+        }
+        return result.next;
+    }  
+不用set的话，可以sort，但是这样的话不能保证order
+  private ListNode mergeSort(ListNode head){
+         if(head == null || head.next == null){
+            return head;
+        }
+        ListNode slow = head;
+        ListNode fast = head.next;
+        while(fast !=null && fast.next != null){
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        ListNode right = mergeSort(slow.next);
+        slow.next = null;
+        ListNode left = mergeSort(head);
+        ListNode newHead = merge(left, right);
+        return newHead;
+    }
+    private ListNode merge(ListNode left, ListNode right){
+        if(left == null){
+            return right;
+        }
+        if(right == null){
+            return left;
+        }
+        ListNode head = new ListNode(0);
+        ListNode result = head;
+        while(left != null && right != null){
+            if(left.val < right.val){
+                head.next = left;
+                left = left.next;
+                head = head.next;
+            }
+            else{
+                head.next = right;
+                right = right.next;
+                head = head.next;
+            }
+        }
+        if(left != null){
+            head.next = left;
+        }
+        if(right != null){
+            head.next = right;
+        }
+        return result.next;
+    }
+    要想保证order，就得o(n*n)
 
 
+3. remove Nth node from end of list
+linkedlist首先考虑头结点是否会改变，如果会，那么就要新建一个pre
+最后要记得返回head.next
+ ListNode removeNthFromEnd(ListNode head, int n) {
+        // write your code here
+        if(head == null || n == 0){
+            return null;
+        }
+        ListNode pre = new ListNode(0);
+        pre.next = head;
+        head = pre;
+        ListNode fast = head;
+        ListNode slow = head;
+        for(int i = 0; i < n; i++){
+            if(fast == null){
+                return null;
+            }
+            fast = fast.next;
+        }
+        while(fast.next != null){
+            fast = fast.next;
+            slow = slow.next;
+        }
+        if(slow.next == null){
+            return null;
+        }
+        slow.next = slow.next.next;
+        return head.next;
+    }
+3. partition list
+
+ public ListNode partition(ListNode head, int x) {
+        // write your code here
+        if(head == null){
+            return null;
+        }
+        ListNode left = new ListNode(0);
+        ListNode right = new ListNode(0);
+        ListNode result = left;
+        ListNode right1 = right;
+        while(head != null){
+            if(head.val < x){
+                left.next = head;
+                head = head.next;
+                left = left.next;
+            }
+            else{
+                right.next = head;
+                right = right.next;
+                head = head.next;
+            }
+        }
+        left.next = right1.next;
+        right.next = null;
+        return result.next;
+        
+    }
+
+4. palindrome linked list
+ public boolean isPalindrome(ListNode head) {
+        // Write your code here
+        if(head == null || head.next == null){
+            return true;
+        }
+        ListNode slow = head;
+        ListNode fast = head.next;
+        while(fast != null && fast.next != null){
+            fast = fast.next.next;
+            slow = slow.next;
+        }
+        ListNode right = reverse(slow.next);
+        slow.next = null;
+        while(head != null && right != null){
+            if(head.val != right.val){
+                return false;
+            }
+            head = head.next;
+            right = right.next;
+        }
+        return true;
+    }
+    private ListNode reverse(ListNode head){
+        if(head == null){
+            return null;
+        }
+        ListNode pre = null;
+        while(head != null){
+            ListNode temp = head.next;
+            head.next = pre;
+            pre = head;
+            head = temp;
+        }
+        return pre;
+    }
+
+5. swapPairs
+   public ListNode swapPairs(ListNode head) {
+        // Write your code here
+        if(head == null || head.next == null){
+            return head;
+        }
+       // ListNode newHead = new ListNode(0);
+        ListNode newHead = head.next;
+        ListNode right = swapPairs(head.next.next);
+        head.next.next = head;
+        head.next = right;
+        return newHead;
+    }
 
 
-
-
-
-
-
-
-
-
-
+6. add two numbers II
+给定6->1->7 + 2->9->5, that is 617 + 295
+做加法肯定是从个位开始容易，所以我就把给定的list都reverse了
+然后开始做加法·弄了个carry，每次x = (a.val + b.val + carry)如果a,b都不为null
+然后还要记得a = a.next b = b.next 特别容易忘！
+x>= 10，那就取余，然后carry = 1，*完事别忘了把carry置0
+然后到循环结束的时候再判断一下carry==1?等于的话就加个1，然后把结果再reverse一下
+public ListNode addLists2(ListNode l1, ListNode l2) {
+        // write your code here
+        if(l1 == null){
+            return l2;
+        }
+        if(l2 == null){
+            return l1;
+        }
+     ListNode result = new ListNode(0);
+     ListNode copy = result;
+     ListNode a = reverse(l1);
+     ListNode b = reverse(l2);
+     int carry = 0;
+     while(a != null || b != null){
+         int x = 0;
+         if(a == null){
+             x = b.val + carry;
+             b = b.next;
+         }
+         else if(b == null){
+             x = a.val + carry;
+             a = a.next;
+         }
+         else{
+            x = (a.val + b.val + carry); 
+            a = a.next;
+            b = b.next;
+         }
+         carry = 0;
+         if(x >= 10){
+             x = x % 10;
+             carry = 1;
+         }
+         result.next = new ListNode(x);
+         result = result.next;
+        
+     }
+     if(carry == 1){
+        result.next = new ListNode(1); 
+       // result = result.next;
+     }
+     return reverse(copy.next);
+    }
+    private ListNode reverse(ListNode head){
+        if(head == null || head.next == null){
+            return head;
+        }
+        ListNode pre = null;
+        while(head != null){
+            ListNode temp = head.next;
+            head.next = pre;
+            pre = head;
+            head = temp;
+        }
+        return pre;
+    }
 
 
 
